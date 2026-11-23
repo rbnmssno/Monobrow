@@ -14,6 +14,21 @@ Monobrow turns the notch into a small island, in the spirit of the iPhone's Dyna
 
 The screenshots show the built-in demo mode with made-up tracks.
 
+## Download
+
+[**Download Monobrow.dmg**](https://github.com/rbnmssno/Monobrow/releases/latest/download/Monobrow.dmg) — macOS 14 or later, Apple silicon.
+
+1. Open the disk image and drag Monobrow to Applications.
+2. Launch Monobrow. The first time, macOS refuses to open it: the app is signed locally and not notarized by Apple, which would need a paid developer account. Click Done.
+3. Open System Settings, go to Privacy & Security, scroll down to Security and click Open Anyway next to the message about Monobrow. Confirm.
+4. When macOS asks whether Monobrow may control Spotify, allow it.
+
+Step 3 is needed only once. If you prefer the Terminal, this command does the same by removing the "downloaded from the internet" mark:
+
+```
+xattr -dr com.apple.quarantine /Applications/Monobrow.app
+```
+
 ## Features
 
 - Cover, title and artist of the current track; long titles scroll.
@@ -52,7 +67,7 @@ Opening the settings window adds about 17 MB until the app restarts.
 - The Spotify desktop app.
 - For likes: a Spotify Premium account, because Spotify requires it for apps in development mode.
 
-## Build and install
+## Build from source
 
 You need Xcode or the Command Line Tools with Swift 5.9 or later.
 
@@ -60,9 +75,7 @@ You need Xcode or the Command Line Tools with Swift 5.9 or later.
 scripts/build.sh
 ```
 
-This produces `dist/Monobrow.dmg`. Open it, drag Monobrow to Applications and launch it from there. On first launch macOS asks whether Monobrow may control Spotify; allow it.
-
-The app is signed locally, without a developer certificate, so build it on the Mac you will run it on.
+This produces `dist/Monobrow.dmg`. Open it, drag Monobrow to Applications and launch it from there. A copy built on your own Mac opens without the extra confirmation described above.
 
 ### Enabling likes
 
@@ -120,6 +133,21 @@ Monobrow превращает вырез в маленький остров, к�
 
 На снимках выше показан встроенный демо-режим с выдуманными треками.
 
+## Скачать
+
+[**Скачать Monobrow.dmg**](https://github.com/rbnmssno/Monobrow/releases/latest/download/Monobrow.dmg) — macOS 14 или новее, Apple silicon.
+
+1. Открой образ и перетащи Monobrow в «Программы».
+2. Запусти Monobrow. В первый раз macOS откажется его открыть: приложение подписано локально и не заверено Apple, для этого нужен платный аккаунт разработчика. Нажми «Готово».
+3. Открой «Системные настройки», раздел «Конфиденциальность и безопасность», прокрути до блока «Безопасность» и нажми «Всё равно открыть» рядом с сообщением о Monobrow. Подтверди.
+4. Когда macOS спросит, можно ли Monobrow управлять Spotify, разреши.
+
+Шаг 3 нужен только один раз. То же самое делает команда в Терминале, она снимает с приложения отметку «загружено из интернета»:
+
+```
+xattr -dr com.apple.quarantine /Applications/Monobrow.app
+```
+
 ## Возможности
 
 - Обложка, название и артист текущего трека; длинные названия прокручиваются.
@@ -158,7 +186,7 @@ Monobrow превращает вырез в маленький остров, к�
 - Приложение Spotify для Mac.
 - Для лайков нужен Spotify Premium: этого требует Spotify от приложений в режиме разработки.
 
-## Сборка и установка
+## Сборка из исходников
 
 Нужен Xcode или Command Line Tools со Swift 5.9 или новее.
 
@@ -166,9 +194,7 @@ Monobrow превращает вырез в маленький остров, к�
 scripts/build.sh
 ```
 
-Получится `dist/Monobrow.dmg`. Открой его, перетащи Monobrow в «Программы» и запусти оттуда. При первом запуске macOS спросит, можно ли Monobrow управлять Spotify; разреши.
-
-Приложение подписывается локально, без сертификата разработчика, поэтому собирать его нужно на том Mac, где оно будет работать.
+Получится `dist/Monobrow.dmg`. Открой его, перетащи Monobrow в «Программы» и запусти оттуда. Копия, собранная на своём Mac, открывается без дополнительного подтверждения, описанного выше.
 
 ### Как включить лайки
 
