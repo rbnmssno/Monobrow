@@ -16,7 +16,7 @@ While a song plays, the album cover sits to the left of the camera and a small e
 
 [Monobrow.dmg](https://github.com/rbnmssno/Monobrow/releases/latest/download/Monobrow.dmg) for macOS 14 or later on Apple silicon.
 
-The app isn't notarized by Apple (that needs a paid developer account), so the first launch takes one extra step:
+The first launch needs to be allowed by hand once:
 
 1. Open the disk image and drag Monobrow to Applications.
 2. Open Monobrow. macOS refuses to run it; click Done.
@@ -117,7 +117,7 @@ Monobrow — плеер Spotify в вырезе MacBook. Пока играет �
 
 [Скачать Monobrow.dmg](https://github.com/rbnmssno/Monobrow/releases/latest/download/Monobrow.dmg). Нужна macOS 14 или новее на Apple silicon.
 
-Приложение не заверено Apple (для этого нужен платный аккаунт разработчика), поэтому при первом запуске будет лишний шаг:
+Первый запуск нужно один раз разрешить вручную:
 
 1. Открой образ и перетащи Monobrow в «Программы».
 2. Запусти Monobrow. macOS откажется его открывать, нажми «Готово».
