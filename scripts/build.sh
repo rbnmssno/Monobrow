@@ -9,41 +9,40 @@ cd "$ROOT"
 
 APP="dist/Monobrow.app"
 DMG="dist/Monobrow.dmg"
-ICON="Resources/AppIcon.icns"
 
-# 1. Icon (generated once, then reused).
-if [ ! -f "$ICON" ]; then
-  echo "==> Drawing the icon"
-  WORK="$(mktemp -d)"
-  swift scripts/make-icon.swift "$WORK/icon-1024.png"
-  SET="$WORK/AppIcon.iconset"
-  mkdir -p "$SET"
-  for size in 16 32 128 256 512; do
-    sips -z "$size" "$size" "$WORK/icon-1024.png" --out "$SET/icon_${size}x${size}.png" >/dev/null
-    double=$((size * 2))
-    sips -z "$double" "$double" "$WORK/icon-1024.png" --out "$SET/icon_${size}x${size}@2x.png" >/dev/null
-  done
-  iconutil -c icns "$SET" -o "$ICON"
-  rm -rf "$WORK"
-fi
-
-# 2. Compile.
+# 1. Compile.
 echo "==> Compiling"
 swift build -c release --arch arm64 2>&1 | grep -E "error:|warning:|Build complete" || true
 BIN="$(swift build -c release --arch arm64 --show-bin-path)/Monobrow"
 [ -x "$BIN" ] || { echo "build failed"; exit 1; }
 
-# 3. Assemble the app bundle.
+# 2. Assemble the app bundle.
 echo "==> Assembling $APP"
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/ru.lproj"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Monobrow"
 strip -x "$APP/Contents/MacOS/Monobrow"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-cp "$ICON" "$APP/Contents/Resources/AppIcon.icns"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
-# A Russian localisation folder makes system-provided texts (menus, dialogs) appear in Russian.
-printf '"CFBundleDisplayName" = "Monobrow";\n"CFBundleName" = "Monobrow";\n' > "$APP/Contents/Resources/ru.lproj/InfoPlist.strings"
+# The language folders tell macOS which languages the app speaks; it then picks one for the
+# app's own texts and for system-provided ones (menus, dialogs).
+cp -R Resources/en.lproj Resources/ru.lproj "$APP/Contents/Resources/"
+
+# 3. Icon. The source is the Icon Composer document Resources/AppIcon.icon. Xcode's actool turns
+#    it into Assets.car, which macOS 26 and later draw with their own glass and dark variants, and
+#    AppIcon.icns for older systems. Without Xcode the prebuilt Resources/AppIcon.icns is used.
+ICON_WORK="$(mktemp -d)"
+# actool hands the work to a background agent with its own working directory, so paths are absolute.
+if xcrun --find actool >/dev/null 2>&1 && xcrun actool "$ROOT/Resources/AppIcon.icon" --compile "$ROOT/$APP/Contents/Resources" \
+     --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon \
+     --output-partial-info-plist "$ICON_WORK/icon.plist" >"$ICON_WORK/actool.log" 2>&1; then
+  echo "==> Icon compiled from Resources/AppIcon.icon"
+else
+  echo "==> actool unavailable; using the prebuilt Resources/AppIcon.icns"
+  rm -f "$APP/Contents/Resources/Assets.car"
+  cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+fi
+rm -rf "$ICON_WORK"
 
 # 4. Sign locally (ad hoc). No developer certificate is needed to run it on this Mac.
 codesign --force --sign - --timestamp=none "$APP"

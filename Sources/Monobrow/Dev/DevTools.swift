@@ -3,7 +3,8 @@ import Carbon
 import SwiftUI
 
 /// Development helpers behind command-line switches: an automated self-test (`--selftest`),
-/// state snapshots as PNG files (`--snapshots <dir>`) and a login-item check (`--selftest-login`).
+/// state snapshots as PNG files (`--snapshots <dir>`), a scripted walkthrough for recording (`--tour`)
+/// and a login-item check (`--selftest-login`).
 /// They drive the simulated player, never the user's Spotify.
 final class DevTools {
     static let fastTiming: Timing = {
@@ -29,6 +30,7 @@ final class DevTools {
     private let showSettings: () -> NSWindow?
     private var failures = 0
     private var passes = 0
+    private var skips = 0
 
     init(options: LaunchOptions, model: PlayerModel, prefs: Preferences, islands: IslandManager,
          backend: PlayerBackend, loginItem: LoginItem, showSettings: @escaping () -> NSWindow?) {
@@ -45,7 +47,8 @@ final class DevTools {
         if options.selfTest {
             Task { @MainActor in
                 await self.runSelfTest()
-                Log.debug("RESULT: \(self.passes) passed, \(self.failures) failed")
+                let skipped = self.skips > 0 ? ", \(self.skips) skipped" : ""
+                Log.debug("RESULT: \(self.passes) passed, \(self.failures) failed\(skipped)")
                 exit(self.failures == 0 ? 0 : 1)
             }
         } else if let directory = options.snapshotDirectory {
@@ -59,6 +62,11 @@ final class DevTools {
         } else if options.stress {
             Task { @MainActor in
                 await self.runStress()
+                exit(0)
+            }
+        } else if options.tour {
+            Task { @MainActor in
+                await self.runTour()
                 exit(0)
             }
         } else if let index = options.holdTrack {
@@ -155,6 +163,19 @@ final class DevTools {
         } else {
             failures += 1
             Log.debug("FAIL  \(name)  \(detail())")
+        }
+    }
+
+    /// Checks a looping animation, which the island deliberately stops when the system asks for
+    /// less motion or saves power (as on some CI machines). Then the check is skipped, not failed.
+    private func checkMotion(_ name: String, _ condition: Bool, equalizer: Bool = false) {
+        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let lowPower = equalizer && model.lowPower
+        if reduceMotion || lowPower {
+            skips += 1
+            Log.debug("SKIP  \(name)  (\(reduceMotion ? "Reduce Motion" : "Low Power Mode") is on)")
+        } else {
+            check(name, condition)
         }
     }
 
@@ -298,6 +319,42 @@ final class DevTools {
             }
             window.close()
         }
+    }
+
+    // MARK: Tour
+
+    /// A scripted walkthrough for the README animation: the island opens, pauses and resumes,
+    /// likes the track, skips to a long title, seeks, closes and announces the next track.
+    /// Record the panel's frame, which is printed first, for example with `screencapture -v -R`.
+    @MainActor
+    private func runTour() async {
+        await pause(1.0)
+        if let controller = mainController, let screen = controller.panel.screen {
+            let frame = controller.panel.frame
+            let top = screen.frame.maxY - frame.maxY
+            Log.debug("tour: panel \(Int(frame.minX)),\(Int(top)),\(Int(frame.width)),\(Int(frame.height))")
+        }
+        await pause(4.0)
+        Log.debug("tour: start")
+        guard let controller = mainController else { return }
+        controller.state.pinned = true
+        await pause(1.8)
+        model.togglePlay()
+        await pause(1.1)
+        model.togglePlay()
+        await pause(1.0)
+        model.toggleLike()
+        await pause(1.6)
+        model.skip(1)
+        await pause(3.4)
+        model.beginScrub(at: 0.62)
+        model.endScrub(at: 0.62, glide: true)
+        await pause(1.4)
+        controller.state.pinned = false
+        await pause(1.6)
+        model.skip(1)
+        await pause(3.6)
+        Log.debug("tour: end")
     }
 
     // MARK: Login item
@@ -1200,7 +1257,7 @@ final class DevTools {
             check("island: volume slider shows the volume", abs(sliders[1].visibleFraction - Double(model.volume) / 100) < 0.02, "\(sliders[1].visibleFraction)")
         }
         let equalizers = Self.views(of: EqualizerNSView.self, in: controller.host)
-        check("island: equalizer animates while playing", equalizers.count == 1 && equalizers[0].looping)
+        checkMotion("island: equalizer animates while playing", equalizers.count == 1 && equalizers[0].looping, equalizer: true)
 
         click(points.play, in: controller)
         await pause(0.3)
@@ -1259,7 +1316,7 @@ final class DevTools {
         check("title: one title view, short title stands still", titles.count == 1 && titles.first?.isScrolling == false, "\(titles.count)")
         demo.jump(to: 1)
         await pause(1.0)
-        check("title: a long title scrolls", titles.first?.isScrolling == true)
+        checkMotion("title: a long title scrolls", titles.first?.isScrolling == true)
         demo.jump(to: 0)
         await pause(1.0)
         check("title: scrolling stops for a short title", titles.first?.isScrolling == false)

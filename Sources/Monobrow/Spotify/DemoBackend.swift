@@ -133,16 +133,16 @@ final class DemoBackend: PlayerBackend {
         func item(_ number: Int, _ title: String, _ artist: String, _ duration: Double, accent: UInt32,
                   colors: [UInt32], angle: CGFloat, dot: UInt32) -> Item {
             Item(
-                track: Track(id: "spotify:track:demo\(number)", title: title, artist: artist, album: "Демо", duration: duration),
+                track: Track(id: "spotify:track:demo\(number)", title: title, artist: artist, album: tr("Демо", "Demo"), duration: duration),
                 artwork: Artwork(image: cover(colors, angle: angle, dot: dot), accent: color(accent))
             )
         }
         return [
-            item(1, "Северный ветер", "Полярная ночь", 221, accent: 0x8ED8FF,
+            item(1, tr("Северный ветер", "North Wind"), tr("Полярная ночь", "Polar Night"), 221, accent: 0x8ED8FF,
                  colors: [0x5FA8DC, 0x0F2D57, 0x06142B], angle: 80, dot: 0xF3FAFF),
             item(2, "Neon Arcade Dreams (Extended Night Drive Mix)", "Kairo Sun", 312, accent: 0xFF5FA2,
                  colors: [0x12081F, 0x4B1162, 0xFF5FA2], angle: 90, dot: 0xFFD36E),
-            item(3, "Амбра", "Тёплые сны", 178, accent: 0xFFB24A,
+            item(3, tr("Амбра", "Amber"), tr("Тёплые сны", "Warm Dreams"), 178, accent: 0xFFB24A,
                  colors: [0x5E1F0A, 0xB4531A, 0xE89A3C], angle: 40, dot: 0xFFE7B8),
             item(4, "Glasshouse", "Mira Okoye", 207, accent: 0x7CF3B4,
                  colors: [0x0C3A2B, 0x1F9E66, 0x9BF0C5], angle: 120, dot: 0xFFFFFF),

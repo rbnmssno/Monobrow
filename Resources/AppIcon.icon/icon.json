@@ -1,0 +1,62 @@
+{
+  "fill": {
+    "automatic-gradient": "srgb:0.90000,0.91000,0.93000,1.00000"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "image-name": "bars.svg",
+          "name": "bars",
+          "glass": true,
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": {
+                "solid": "srgb:1.00000,1.00000,1.00000,1.00000"
+              }
+            }
+          ]
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.4
+      },
+      "specular": true
+    },
+    {
+      "layers": [
+        {
+          "image-name": "notch.svg",
+          "name": "notch",
+          "glass": false
+        }
+      ],
+      "shadow": {
+        "kind": "none",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0.4
+      },
+      "specular": false
+    }
+  ],
+  "supported-platforms": {
+    "squares": "shared"
+  },
+  "fill-specializations": [
+    {
+      "appearance": "dark",
+      "value": {
+        "automatic-gradient": "srgb:0.17000,0.17000,0.19000,1.00000"
+      }
+    }
+  ]
+}

@@ -189,7 +189,7 @@ private struct ExpandedContent: View {
         VStack(spacing: 14) {
             TrackTitles(
                 title: model.track?.title ?? "Spotify",
-                artist: model.track?.artist ?? "Ничего не играет",
+                artist: model.track?.artist ?? tr("Ничего не играет", "Nothing playing"),
                 note: model.note,
                 transition: model.transition,
                 animated: shown && !reduceMotion,
@@ -269,7 +269,7 @@ private struct ExpandedContent: View {
 
             HStack(spacing: 14) {
                 SkipButton(direction: -1) { model.skip(-1) }
-                IslandButton(size: 46, help: model.isPlaying ? "Пауза" : "Играть", action: { model.togglePlay() }) { hovering in
+                IslandButton(size: 46, help: model.isPlaying ? tr("Пауза", "Pause") : tr("Играть", "Play"), action: { model.togglePlay() }) { hovering in
                     PlayPauseGlyph(isPlaying: model.isPlaying, size: 28)
                         .scaleEffect(hovering ? 1.07 : 1)
                         .animation(Motion.soft, value: hovering)

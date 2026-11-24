@@ -45,8 +45,8 @@ final class LoginItem: ObservableObject {
             }
         } catch {
             problem = enabled
-                ? "macOS не дала добавить Monobrow в автозапуск. Добавь его вручную: Системные настройки → Основные → Объекты входа."
-                : "Не получилось убрать Monobrow из автозапуска. Убери его вручную: Системные настройки → Основные → Объекты входа."
+                ? tr("macOS не дала добавить Monobrow в автозапуск. Добавь его вручную: Системные настройки → Основные → Объекты входа.", "macOS did not let Monobrow open at login. Add it in System Settings → General → Login Items.")
+                : tr("Не получилось убрать Monobrow из автозапуска. Убери его вручную: Системные настройки → Основные → Объекты входа.", "Monobrow could not take itself out of Login Items. Remove it in System Settings → General → Login Items.")
             Log.error("login item change failed: \((error as NSError).domain) \((error as NSError).code)")
         }
         refresh()

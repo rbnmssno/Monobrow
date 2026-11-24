@@ -387,11 +387,11 @@ final class PlayerModel: ObservableObject {
 
     func toggleLike(fromCover: Bool = false) {
         guard let likes, likes.isConnected else {
-            denyLike("Подключи аккаунт Spotify в настройках")
+            denyLike(tr("Подключи аккаунт Spotify в настройках", "Connect your Spotify account in Settings"))
             return
         }
         guard let track, track.isLikeable else {
-            denyLike("Это нельзя добавить в «Любимые треки»")
+            denyLike(tr("Это нельзя добавить в «Любимые треки»", "This can't be added to Liked Songs"))
             return
         }
         if fromCover {
@@ -409,7 +409,7 @@ final class PlayerModel: ObservableObject {
         likeStatus = target ? .liked : .notLiked
         setLikeShown(target)
         likeEffect = LikeEffect(serial: likeEffect.serial + 1, kind: target ? .liked : .unliked)
-        showNote(target ? "Добавлено в «Любимые треки»" : "Убрано из «Любимых треков»", tone: target ? .positive : .neutral)
+        showNote(target ? tr("Добавлено в «Любимые треки»", "Added to Liked Songs") : tr("Убрано из «Любимых треков»", "Removed from Liked Songs"), tone: target ? .positive : .neutral)
 
         // Requests run one after another, so a quick like-unlike reaches Spotify in the same order.
         bumpLikeVersion(id)
@@ -459,11 +459,11 @@ final class PlayerModel: ObservableObject {
         likeEffect = LikeEffect(serial: likeEffect.serial + 1, kind: .denied)
         let text: String
         switch error as? SpotifyError {
-        case .network: text = "Нет связи со Spotify, лайк не сохранён"
-        case .rateLimited: text = "Spotify просит подождать с лайками"
-        case .reauthorizationRequired, .notConnected: text = "Подключи аккаунт Spotify заново"
-        case .forbidden: text = "Spotify отклонил лайк, см. настройки"
-        default: text = "Не получилось сохранить лайк"
+        case .network: text = tr("Нет связи со Spotify, лайк не сохранён", "Can't reach Spotify, like not saved")
+        case .rateLimited: text = tr("Spotify просит подождать с лайками", "Spotify asks to slow down with likes")
+        case .reauthorizationRequired, .notConnected: text = tr("Подключи аккаунт Spotify заново", "Reconnect your Spotify account")
+        case .forbidden: text = tr("Spotify отклонил лайк, см. настройки", "Spotify refused the like, see Settings")
+        default: text = tr("Не получилось сохранить лайк", "Couldn't save the like")
         }
         showNote(text, tone: .neutral)
         accountDidChange()
@@ -703,7 +703,7 @@ final class PlayerModel: ObservableObject {
 
     private func canControl() -> Bool {
         guard permission == .denied else { return true }
-        showNote("Нет доступа к Spotify, открой настройки", tone: .neutral)
+        showNote(tr("Нет доступа к Spotify, открой настройки", "No access to Spotify, open Settings"), tone: .neutral)
         backend?.recheckPermission()
         onPermissionProblem?()
         return false

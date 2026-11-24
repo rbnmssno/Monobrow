@@ -259,7 +259,7 @@ struct SkipButton: View {
     @State private var phase = 0.0
 
     var body: some View {
-        IslandButton(size: 38, help: direction > 0 ? "Следующий трек" : "Предыдущий трек") {
+        IslandButton(size: 38, help: direction > 0 ? tr("Следующий трек", "Next track") : tr("Предыдущий трек", "Previous track")) {
             withAnimation(.linear(duration: 0.42)) { phase += 1 }
             action()
         } label: { hovering in
@@ -328,7 +328,7 @@ struct LikeButton: View {
     @State private var shake = 0.0
 
     var body: some View {
-        IslandButton(size: 36, help: liked ? "Убрать из «Любимых треков»" : "Добавить в «Любимые треки»", action: action) { hovering in
+        IslandButton(size: 36, help: liked ? tr("Убрать из «Любимых треков»", "Remove from Liked Songs") : tr("Добавить в «Любимые треки»", "Add to Liked Songs"), action: action) { hovering in
             ZStack {
                 Phased(burst) { t in LikeBurst(t: t, accent: accent) }
                 Phased(burst) { pop in
@@ -461,7 +461,7 @@ struct MuteButton: View {
     @State private var wiggle = 0.0
 
     var body: some View {
-        IslandButton(size: 28, help: volume == 0 ? "Включить звук" : "Выключить звук") {
+        IslandButton(size: 28, help: volume == 0 ? tr("Включить звук", "Unmute") : tr("Выключить звук", "Mute")) {
             withAnimation(.linear(duration: 0.45)) { wiggle += 1 }
             action()
         } label: { _ in

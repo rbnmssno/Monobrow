@@ -19,6 +19,8 @@ struct LaunchOptions {
     /// Remove what the app keeps in the system (login item, saved Spotify login, settings) and quit.
     var uninstall = false
     var snapshotDirectory: String?
+    /// Play a scripted walkthrough of the island, for recording the README animation.
+    var tour = false
     var logFile: String?
 
     init(arguments: [String]) {
@@ -34,6 +36,7 @@ struct LaunchOptions {
             case "--stress": stress = true
             case "--uninstall": uninstall = true
             case "--backdrop": DevFlags.backdrop = true
+            case "--tour": tour = true
             case "--hold":
                 index += 1
                 if index < arguments.count { holdTrack = Int(arguments[index]) }
@@ -47,7 +50,7 @@ struct LaunchOptions {
             }
             index += 1
         }
-        if snapshotDirectory != nil || selfTest || stress || holdTrack != nil { demo = true }
+        if snapshotDirectory != nil || selfTest || stress || holdTrack != nil || tour { demo = true }
     }
 
     var isDevelopment: Bool { demo || selfTest || loginItemTest || dormant || snapshotDirectory != nil }
@@ -198,10 +201,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func makeIslandMenu() -> NSMenu {
         let menu = NSMenu()
         menu.autoenablesItems = false
-        menu.addItem(ActionMenuItem(title: "Открыть Spotify") { [weak self] in self?.openSpotify() })
-        menu.addItem(ActionMenuItem(title: "Настройки…") { [weak self] in self?.showSettings(nil) })
+        menu.addItem(ActionMenuItem(title: tr("Открыть Spotify", "Open Spotify")) { [weak self] in self?.openSpotify() })
+        menu.addItem(ActionMenuItem(title: tr("Настройки…", "Settings…")) { [weak self] in self?.showSettings(nil) })
         menu.addItem(.separator())
-        menu.addItem(ActionMenuItem(title: "Выйти из Monobrow") { NSApp.terminate(nil) })
+        menu.addItem(ActionMenuItem(title: tr("Выйти из Monobrow", "Quit Monobrow")) { NSApp.terminate(nil) })
         return menu
     }
 
@@ -296,9 +299,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Сначала установи Monobrow"
-        alert.informativeText = "Перетащи значок Monobrow на папку «Программы» в этом же окне и запусти его оттуда. Так он сможет стартовать вместе со Spotify."
-        alert.addButton(withTitle: "Понятно")
+        alert.messageText = tr("Сначала установи Monobrow", "Install Monobrow first")
+        alert.informativeText = tr("Перетащи значок Monobrow на папку «Программы» в этом же окне и запусти его оттуда. Так он сможет стартовать вместе со Spotify.", "Drag Monobrow onto the Applications folder in this window and open it from there. Then it can start together with Spotify.")
+        alert.addButton(withTitle: tr("Понятно", "OK"))
         alert.runModal()
         NSApp.terminate(nil)
         return true

@@ -1,0 +1,47 @@
+name: Bug report
+description: Something in Monobrow doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Можно писать по-русски.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. A screenshot or a short screen recording helps a lot.
+    validations:
+      required: true
+  - type: input
+    id: monobrow
+    attributes:
+      label: Monobrow version
+      description: Shown at the bottom of Monobrow's settings.
+      placeholder: "1.0.1"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "macOS 26.1"
+    validations:
+      required: true
+  - type: input
+    id: mac
+    attributes:
+      label: Mac model
+      placeholder: "MacBook Air M3, 13-inch"
+  - type: input
+    id: spotify
+    attributes:
+      label: Spotify version
+      description: Spotify menu → About Spotify.
+  - type: dropdown
+    id: display
+    attributes:
+      label: Which display
+      options:
+        - Built-in display with a notch
+        - External display
+        - Both

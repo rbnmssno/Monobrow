@@ -63,7 +63,7 @@ final class SpotifyAccount: ObservableObject, LikeService {
     func connect(clientID rawClientID: String) {
         let clientID = rawClientID.trimmingCharacters(in: .whitespacesAndNewlines)
         guard Self.looksLikeClientID(clientID) else {
-            message = "Это не похоже на Client ID. Он состоит из 32 латинских букв и цифр, скопируй его из настроек приложения в Spotify for Developers."
+            message = tr("Это не похоже на Client ID. Он состоит из 32 латинских букв и цифр, скопируй его из настроек приложения в Spotify for Developers.", "This doesn't look like a Client ID. It is 32 letters and digits; copy it from your app's settings in Spotify for Developers.")
             return
         }
         cancelFlow()
@@ -74,7 +74,7 @@ final class SpotifyAccount: ObservableObject, LikeService {
         let state = PKCE.randomState()
         flowID += 1
         let flow = flowID
-        let portMessage = "Не удалось начать вход: порт \(SpotifyAuthConfig.redirectPort) занят другой программой. Закрой её и попробуй ещё раз."
+        let portMessage = tr("Не удалось начать вход: порт \(SpotifyAuthConfig.redirectPort) занят другой программой. Закрой её и попробуй ещё раз.", "Can't start the login: another app is using port \(SpotifyAuthConfig.redirectPort). Quit it and try again.")
 
         let server: LoopbackServer
         do {
@@ -101,7 +101,7 @@ final class SpotifyAccount: ObservableObject, LikeService {
                     if let url = Self.authorizeURL(clientID: clientID, challenge: challenge, state: state) {
                         self.openURL(url)
                     } else {
-                        self.fail("Не удалось собрать адрес для входа.")
+                        self.fail(tr("Не удалось собрать адрес для входа.", "Couldn't build the login address."))
                     }
                 case .failure:
                     self.fail(portMessage)
@@ -110,7 +110,7 @@ final class SpotifyAccount: ObservableObject, LikeService {
         }
         flowTimeout.schedule(after: 300) { [weak self] in
             guard let self, flow == self.flowID, self.status == .connecting else { return }
-            self.fail("Вход не был завершён за 5 минут. Попробуй ещё раз.")
+            self.fail(tr("Вход не был завершён за 5 минут. Попробуй ещё раз.", "The login wasn't finished within 5 minutes. Try again."))
         }
     }
 
@@ -159,7 +159,7 @@ final class SpotifyAccount: ObservableObject, LikeService {
         switch outcome {
         case .denied:
             status = .disconnected
-            message = "Вход отменён на странице Spotify."
+            message = tr("Вход отменён на странице Spotify.", "The login was cancelled on Spotify's page.")
             forgetLogin()
         case .code(let code):
             Task { [weak self, tokens] in
@@ -196,23 +196,23 @@ final class SpotifyAccount: ObservableObject, LikeService {
     private static func respond(to request: LoopbackServer.Request, expectedState: String,
                                 completion: @escaping (Outcome) -> Void) -> LoopbackServer.Response {
         guard request.path == "/callback" else {
-            return .init(status: 404, html: page(title: "Страница не найдена", text: "Вернись в Monobrow и начни вход заново.", ok: false), final: false)
+            return .init(status: 404, html: page(title: tr("Страница не найдена", "Page not found"), text: tr("Вернись в Monobrow и начни вход заново.", "Go back to Monobrow and start the login again."), ok: false), final: false)
         }
         guard request.query["state"] == expectedState else {
-            return .init(status: 400, html: page(title: "Запрос не от Monobrow", text: "Вернись в Monobrow и начни вход заново.", ok: false), final: false)
+            return .init(status: 400, html: page(title: tr("Запрос не от Monobrow", "This request didn't come from Monobrow"), text: tr("Вернись в Monobrow и начни вход заново.", "Go back to Monobrow and start the login again."), ok: false), final: false)
         }
         if let code = request.query["code"], !code.isEmpty {
             completion(.code(code))
-            return .init(status: 200, html: page(title: "Monobrow подключён", text: "Лайки теперь работают. Эту вкладку можно закрыть.", ok: true), final: true)
+            return .init(status: 200, html: page(title: tr("Monobrow подключён", "Monobrow is connected"), text: tr("Лайки теперь работают. Эту вкладку можно закрыть.", "Likes work now. You can close this tab."), ok: true), final: true)
         }
         completion(.denied)
-        return .init(status: 200, html: page(title: "Вход отменён", text: "Monobrow не получил доступ. Эту вкладку можно закрыть.", ok: false), final: true)
+        return .init(status: 200, html: page(title: tr("Вход отменён", "Login cancelled"), text: tr("Monobrow не получил доступ. Эту вкладку можно закрыть.", "Monobrow didn't get access. You can close this tab."), ok: false), final: true)
     }
 
     private static func page(title: String, text: String, ok: Bool) -> String {
         let color = ok ? "#1ED760" : "#FFB24A"
         return """
-        <!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Monobrow</title>
+        <!doctype html><html lang="\(tr("ru", "en"))"><head><meta charset="utf-8"><title>Monobrow</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0B0C0F;color:#E7E9ED;
         font:16px -apple-system,BlinkMacSystemFont,sans-serif}main{max-width:420px;padding:32px;text-align:center}
@@ -224,15 +224,15 @@ final class SpotifyAccount: ObservableObject, LikeService {
     static func describe(_ error: Error) -> String {
         switch error as? SpotifyError {
         case .authorization(let detail):
-            return "Spotify не принял вход (\(detail)). Проверь Client ID и что в приложении указан Redirect URI \(SpotifyAuthConfig.redirectURI)."
+            return tr("Spotify не принял вход (\(detail)). Проверь Client ID и что в приложении указан Redirect URI \(SpotifyAuthConfig.redirectURI).", "Spotify didn't accept the login (\(detail)). Check the Client ID and that your app lists the redirect URI \(SpotifyAuthConfig.redirectURI).")
         case .network:
-            return "Нет связи со Spotify. Проверь интернет и попробуй ещё раз."
+            return tr("Нет связи со Spotify. Проверь интернет и попробуй ещё раз.", "Can't reach Spotify. Check your connection and try again.")
         case .rateLimited:
-            return "Spotify просит подождать. Попробуй через минуту."
+            return tr("Spotify просит подождать. Попробуй через минуту.", "Spotify asks to wait. Try again in a minute.")
         case .forbidden:
-            return "Spotify отклонил запрос. Проверь, что у владельца приложения активен Premium."
+            return tr("Spotify отклонил запрос. Проверь, что у владельца приложения активен Premium.", "Spotify refused the request. Check that the app owner has an active Premium plan.")
         default:
-            return "Не получилось завершить вход. Попробуй ещё раз."
+            return tr("Не получилось завершить вход. Попробуй ещё раз.", "Couldn't finish the login. Try again.")
         }
     }
 
@@ -266,11 +266,11 @@ final class SpotifyAccount: ObservableObject, LikeService {
             case .reauthorizationRequired, .notConnected:
                 guard self.status == .connected else { return }
                 self.status = .disconnected
-                self.message = "Spotify больше не принимает сохранённый вход. Подключи аккаунт заново."
+                self.message = tr("Spotify больше не принимает сохранённый вход. Подключи аккаунт заново.", "Spotify no longer accepts the saved login. Connect your account again.")
                 self.forgetLogin()
                 self.onChange?()
             case .forbidden:
-                self.message = "Spotify отклонил запрос. Проверь, что у владельца приложения активен Premium, а твой аккаунт добавлен в User Management приложения."
+                self.message = tr("Spotify отклонил запрос. Проверь, что у владельца приложения активен Premium, а твой аккаунт добавлен в User Management приложения.", "Spotify refused the request. Check that the app owner has an active Premium plan and that your account is listed under the app's User Management.")
             default:
                 break
             }

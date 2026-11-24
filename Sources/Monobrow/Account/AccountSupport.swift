@@ -101,7 +101,7 @@ struct KeychainStore: SecretStore {
         guard let value else { return }
         var item = query(key)
         item[kSecValueData as String] = Data(value.utf8)
-        item[kSecAttrLabel as String] = "Monobrow: вход в Spotify"
+        item[kSecAttrLabel as String] = tr("Monobrow: вход в Spotify", "Monobrow: Spotify login")
         let status = SecItemAdd(item as CFDictionary, nil)
         if status != errSecSuccess { Log.error("keychain write failed: \(status)") }
     }

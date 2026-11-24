@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "Monobrow";
+"CFBundleName" = "Monobrow";
+"NSAppleEventsUsageDescription" = "Monobrow показывает текущий трек и управляет воспроизведением в Spotify: пауза, переключение треков, перемотка и громкость.";
+"NSHumanReadableCopyright" = "Личный проект. Не связан со Spotify AB.";
