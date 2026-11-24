@@ -137,17 +137,18 @@ final class DemoBackend: PlayerBackend {
                 artwork: Artwork(image: cover(colors, angle: angle, dot: dot), accent: color(accent))
             )
         }
+        // Monochrome covers in graphite and silver, matching the icon; the equalizer is light grey.
         return [
-            item(1, tr("Северный ветер", "North Wind"), tr("Полярная ночь", "Polar Night"), 221, accent: 0x8ED8FF,
-                 colors: [0x5FA8DC, 0x0F2D57, 0x06142B], angle: 80, dot: 0xF3FAFF),
-            item(2, "Neon Arcade Dreams (Extended Night Drive Mix)", "Kairo Sun", 312, accent: 0xFF5FA2,
-                 colors: [0x12081F, 0x4B1162, 0xFF5FA2], angle: 90, dot: 0xFFD36E),
-            item(3, tr("Амбра", "Amber"), tr("Тёплые сны", "Warm Dreams"), 178, accent: 0xFFB24A,
-                 colors: [0x5E1F0A, 0xB4531A, 0xE89A3C], angle: 40, dot: 0xFFE7B8),
-            item(4, "Glasshouse", "Mira Okoye", 207, accent: 0x7CF3B4,
-                 colors: [0x0C3A2B, 0x1F9E66, 0x9BF0C5], angle: 120, dot: 0xFFFFFF),
-            item(5, "Low Tide", "Velvet Harbor", 245, accent: 0xB9A2FF,
-                 colors: [0x1C1640, 0x6C55B5, 0x2A2156], angle: 90, dot: 0xFFD6F0),
+            item(1, tr("Северный ветер", "North Wind"), tr("Полярная ночь", "Polar Night"), 221, accent: 0xF5F6F8,
+                 colors: [0x1E1F23, 0x3A3C43, 0x6A6E78], angle: 100, dot: 0xF2F3F5),
+            item(2, "Neon Arcade Dreams (Extended Night Drive Mix)", "Kairo Sun", 312, accent: 0xE4E6EA,
+                 colors: [0x858B96, 0xC3C7CE, 0xF4F5F7], angle: 100, dot: 0x2A2C31),
+            item(3, tr("Амбра", "Amber"), tr("Тёплые сны", "Warm Dreams"), 178, accent: 0xEDEEF1,
+                 colors: [0x0E0E10, 0x2B2C30, 0x55585F], angle: 50, dot: 0xD9DBE0),
+            item(4, "Glasshouse", "Mira Okoye", 207, accent: 0xEDEFF2,
+                 colors: [0x2A2C31, 0x5C6068, 0x9EA3AC], angle: 120, dot: 0xFFFFFF),
+            item(5, "Low Tide", "Velvet Harbor", 245, accent: 0xDADCE0,
+                 colors: [0x15161A, 0x34363C, 0x4A4D54], angle: 90, dot: 0xC9CCD2),
         ]
     }
 }
