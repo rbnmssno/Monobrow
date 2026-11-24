@@ -183,6 +183,16 @@ final class DevTools {
         try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
     }
 
+    /// Waits until `condition` holds or `timeout` passes. Checks that wait for an answer use this
+    /// instead of a fixed pause, so a slow or busy machine (such as a CI runner) does not fail them.
+    @MainActor
+    private func waitUntil(timeout: Double = 2, _ condition: () -> Bool) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while !condition(), Date() < deadline {
+            await pause(0.02)
+        }
+    }
+
     private var mainController: IslandPanelController? {
         islands.controllers.values.first(where: { $0.state.metrics.hasNotch }) ?? islands.controllers.values.first
     }
@@ -745,13 +755,13 @@ final class DevTools {
         likes.readDelay = 0.15
         backend.emit(snapshot(track("a"), .playing))
         check("heart: an unknown first track starts empty", !model.likeShown && model.likeStatus == .unknown)
-        await pause(0.3)
+        await waitUntil { model.likeStatus == .liked }
         check("heart: turns green when Spotify answers", model.likeShown && model.likeStatus == .liked)
 
         // The reported case: skipping through liked tracks.
         backend.emit(snapshot(track("b"), .playing))
         check("heart: stays green while the next track is checked", model.likeShown && model.likeStatus == .unknown)
-        await pause(0.3)
+        await waitUntil { model.likeStatus == .liked }
         check("heart: and is still green once confirmed", model.likeShown && model.likeStatus == .liked)
 
         likes.readDelay = 5 // the answer cannot be what sets the heart here
@@ -761,7 +771,7 @@ final class DevTools {
         likes.readDelay = 0.1
         likes.liked = false
         backend.emit(snapshot(track("c"), .playing))
-        await pause(0.25)
+        await waitUntil { model.likeStatus == .notLiked }
         check("heart: goes out when the next track is not liked", !model.likeShown && model.likeStatus == .notLiked)
 
         // Spotify answers too slowly.
@@ -773,7 +783,7 @@ final class DevTools {
         backend.emit(snapshot(track("d"), .playing))
         await pause(0.45)
         check("heart: without an answer it stops showing the old state", !model.likeShown && model.likeStatus == .unknown)
-        await pause(0.5)
+        await waitUntil { model.likeStatus == .liked }
         check("heart: a late answer still arrives", model.likeShown && model.likeStatus == .liked)
 
         // A click while the answer is on its way flips what the heart shows.
