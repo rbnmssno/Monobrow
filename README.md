@@ -1,12 +1,29 @@
-# Monobrow
+<p align="center">
+  <img src="docs/icon.png" width="128" height="128" alt="Monobrow icon">
+</p>
 
-Spotify player for the MacBook notch.
+<h1 align="center">Monobrow</h1>
 
-[![Build](https://github.com/rbnmssno/Monobrow/actions/workflows/build.yml/badge.svg)](https://github.com/rbnmssno/Monobrow/actions/workflows/build.yml) · [Русская версия](#по-русски)
+<p align="center">
+  Spotify player for the MacBook notch. SoundCloud too, through <a href="https://github.com/rbnmssno/Wisp">Wisp</a>.
+</p>
+
+<p align="center">
+  <a href="https://github.com/rbnmssno/Monobrow/releases/latest"><img src="https://img.shields.io/github/v/release/rbnmssno/Monobrow?label=release&color=1db954" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-14%2B-111111?logo=apple&logoColor=white" alt="macOS 14 or later">
+  <a href="https://github.com/rbnmssno/Monobrow/actions/workflows/build.yml"><img src="https://github.com/rbnmssno/Monobrow/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/rbnmssno/Monobrow?color=555555" alt="MIT license"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/rbnmssno/Monobrow/releases/latest/download/Monobrow.dmg"><b>Download Monobrow.dmg</b></a>
+  &nbsp;·&nbsp;
+  <a href="#по-русски">Русская версия</a>
+</p>
 
 ![Monobrow opening, pausing, liking and skipping tracks](docs/demo.gif)
 
-While a song plays, the album cover sits to the left of the camera and a small equalizer to the right. Hover the notch and it opens into a player with seeking, volume, skip and like. Monobrow shows up when you open Spotify and hides when you quit it.
+While a song plays, the album cover sits to the left of the camera and a small equalizer to the right. Hover the notch and it opens into a player with seeking, volume, skip and like. Monobrow shows up when you open Spotify or Wisp and hides when you quit them.
 
 It barely uses any resources: 0% CPU even with the player open, and about 20 MB of memory.
 
@@ -40,6 +57,7 @@ xattr -dr com.apple.quarantine /Applications/Monobrow.app
 - Folds back into the notch ten seconds after you pause
 - Works on displays without a notch, hanging from the top edge
 - Opens at login and waits for Spotify; the Dock icon is optional
+- SoundCloud tracks playing in [Wisp](https://github.com/rbnmssno/Wisp) show up too, with the same controls; the heart turns orange for SoundCloud likes
 - English or Russian, following the system language
 
 ## How it works
@@ -61,6 +79,12 @@ Measured with `footprint` and `top` on an Apple silicon MacBook Pro:
 | Player open, title scrolling | ~23 MB | 0% |
 
 Opening Settings adds about 17 MB until the next restart.
+
+## SoundCloud
+
+![A SoundCloud track liked from the notch](docs/soundcloud.png)
+
+[Wisp](https://github.com/rbnmssno/Wisp), a SoundCloud app for the Mac, reports what it plays the same way Spotify does, so Monobrow shows it with no setup. When both are open, the island follows whichever played last, and when one quits the other takes over. Likes for SoundCloud tracks go through Wisp and need no Spotify account.
 
 ## Likes
 
@@ -89,6 +113,7 @@ Monobrow --selftest        # 195 checks against a simulated player, clicking the
 Monobrow --demo            # the island with made-up tracks
 Monobrow --snapshots DIR   # a PNG of every state (add --backdrop for README-style images)
 Monobrow --tour            # the scripted walkthrough the GIF above was recorded from
+Monobrow --soundcloud      # with --demo, --snapshots or --tour: the made-up tracks come from Wisp
 Monobrow --stress          # many open/close cycles and track changes, logging memory
 ```
 
@@ -99,6 +124,7 @@ The binary is `dist/Monobrow.app/Contents/MacOS/Monobrow`. Add `-AppleLanguages 
 | `Sources/Monobrow/Spotify` | Notifications, Apple Events, cover loading, the simulated player |
 | `Sources/Monobrow/Model` | Player state and the island's behaviour |
 | `Sources/Monobrow/Island` | The panel and its views |
+| `Sources/Monobrow/SoundCloud` | Wisp as a second player, and the switch between the two |
 | `Sources/Monobrow/Account` | Spotify login and likes |
 | `Sources/Monobrow/Settings` | Settings window, launch at login |
 | `Sources/Monobrow/Dev` | Self-test, snapshots, tour, stress test |
@@ -114,6 +140,8 @@ This removes the login item, the saved Spotify login and the settings. Then dele
 ## По-русски
 
 Monobrow — плеер Spotify в вырезе MacBook. Пока играет музыка, слева от камеры видна обложка, справа эквалайзер. Наведи курсор на вырез, и откроется плеер с перемоткой, громкостью, переключением треков и лайком. Monobrow появляется, когда открываешь Spotify, и прячется, когда его закрываешь. Язык интерфейса берётся из системы.
+
+Треки SoundCloud тоже показываются, если они играют в [Wisp](https://github.com/rbnmssno/Wisp), приложении SoundCloud для Mac. Настраивать ничего не нужно, лайки идут через Wisp, а сердечко у них оранжевое.
 
 Ресурсов почти не тратит: 0% процессора даже с открытым плеером и около 20 МБ памяти.
 
