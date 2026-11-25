@@ -44,8 +44,20 @@ else
 fi
 rm -rf "$ICON_WORK"
 
-# 4. Sign locally (ad hoc). No developer certificate is needed to run it on this Mac.
-codesign --force --sign - --timestamp=none "$APP"
+# 4. Sign locally. No developer certificate is needed to run it on this Mac. With the local identity
+#    from scripts/make-signing-identity.sh every build has the same identity, so the keychain keeps
+#    handing over the saved Spotify sign-in and the permission to control Spotify stays. Without it,
+#    an ad hoc signature: runs fine, but each build counts as a new app and is asked again.
+KC="$ROOT/signing/monobrow.keychain-db"
+if [ -f "$KC" ]; then
+  security unlock-keychain -p monobrow-local "$KC"
+  ID=$(security find-identity -p codesigning "$KC" | awk '/Monobrow Local Signing/ {print $2; exit}')
+  codesign --force --timestamp=none --keychain "$KC" --sign "$ID" "$APP" 2>&1 | grep -v "replacing existing" || true
+  echo "==> Signed with Monobrow Local Signing"
+else
+  codesign --force --sign - --timestamp=none "$APP"
+  echo "==> Signed ad hoc (run scripts/make-signing-identity.sh once to keep the keychain and Spotify permissions across builds)"
+fi
 codesign --verify --strict "$APP"
 
 if [ "${1:-}" = "--app-only" ]; then
