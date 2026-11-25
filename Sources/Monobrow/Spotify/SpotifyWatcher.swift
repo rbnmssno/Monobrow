@@ -1,10 +1,16 @@
 import AppKit
 
-/// Tells when the Spotify desktop app starts and quits. The system pushes these events; nothing is polled.
+/// Tells when a player app starts and quits: Spotify, or Wisp for SoundCloud. The system pushes these
+/// events; nothing is polled.
 final class SpotifyWatcher {
     var onChange: ((Bool) -> Void)?
     private(set) var isRunning = false
+    private let bundleID: String
     private var tokens: [NSObjectProtocol] = []
+
+    init(bundleID: String = SpotifyAppleEvents.bundleID) {
+        self.bundleID = bundleID
+    }
 
     func start() {
         let center = NSWorkspace.shared.notificationCenter
@@ -14,7 +20,7 @@ final class SpotifyWatcher {
         tokens.append(center.addObserver(forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main) { [weak self] note in
             self?.handle(note, running: false)
         })
-        isRunning = Self.spotifyIsRunning()
+        isRunning = !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
     }
 
     func stop() {
@@ -23,15 +29,11 @@ final class SpotifyWatcher {
         tokens.removeAll()
     }
 
-    static func spotifyIsRunning() -> Bool {
-        !NSRunningApplication.runningApplications(withBundleIdentifier: SpotifyAppleEvents.bundleID).isEmpty
-    }
-
     private func handle(_ note: Notification, running: Bool) {
         guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
-              app.bundleIdentifier == SpotifyAppleEvents.bundleID else { return }
+              app.bundleIdentifier == bundleID else { return }
         // A second copy quitting must not hide the island while another one is still running.
-        let others = NSRunningApplication.runningApplications(withBundleIdentifier: SpotifyAppleEvents.bundleID)
+        let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             .contains { $0.processIdentifier != app.processIdentifier && !$0.isTerminated }
         let actual = running || others
         guard actual != isRunning else { return }

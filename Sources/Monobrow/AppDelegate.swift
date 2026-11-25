@@ -36,6 +36,7 @@ struct LaunchOptions {
             case "--stress": stress = true
             case "--uninstall": uninstall = true
             case "--backdrop": DevFlags.backdrop = true
+            case "--soundcloud": DevFlags.soundCloudDemo = true
             case "--tour": tour = true
             case "--hold":
                 index += 1
@@ -61,6 +62,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let options = LaunchOptions(arguments: CommandLine.arguments)
     private let watcher = SpotifyWatcher()
+    /// Wisp, the SoundCloud window: its music shows on the island too.
+    private let wispWatcher = SpotifyWatcher(bundleID: WispBackend.bundleID)
+    private var router: RoutingBackend?
     private var prefs: Preferences!
     private var model: PlayerModel!
     private var backend: PlayerBackend!
@@ -100,11 +104,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Shown in the settings window only; it keeps nothing and likes go to the simulated service.
             account = SpotifyAccount(prefs: prefs, secrets: MemorySecretStore())
         } else {
-            backend = SpotifyBackend()
+            let wisp = WispBackend()
+            let router = RoutingBackend(spotify: SpotifyBackend(), soundcloud: wisp)
+            self.router = router
+            backend = router
             let account = SpotifyAccount(prefs: prefs)
             account.onChange = { [weak self] in self?.model.accountDidChange() }
             self.account = account
-            likes = account
+            likes = RoutingLikeService(spotify: account, soundcloud: wisp)
         }
         model.attach(backend: backend, likes: likes)
         model.onPermissionProblem = { [weak self] in self?.showSettings(nil) }
@@ -140,9 +147,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if options.demo {
             spotifyChanged(running: true)
         } else if !options.dormant {
-            watcher.onChange = { [weak self] running in self?.spotifyChanged(running: running) }
+            watcher.onChange = { [weak self] _ in self?.playersChanged() }
+            wispWatcher.onChange = { [weak self] _ in self?.playersChanged() }
             watcher.start()
-            if watcher.isRunning { spotifyChanged(running: true) }
+            wispWatcher.start()
+            playersChanged()
         }
 
         if options.isDevelopment {
@@ -188,6 +197,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings?.show()
     }
 
+    /// Spotify or Wisp started or quit: the island lives while at least one of them runs.
+    private func playersChanged() {
+        guard let router else { return }
+        router.setRunning(.spotify, watcher.isRunning)
+        router.setRunning(.soundcloud, wispWatcher.isRunning)
+        spotifyChanged(running: router.anyRunning)
+    }
+
     private func spotifyChanged(running: Bool) {
         if running {
             model.spotifyDidLaunch()
@@ -201,7 +218,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func makeIslandMenu() -> NSMenu {
         let menu = NSMenu()
         menu.autoenablesItems = false
-        menu.addItem(ActionMenuItem(title: tr("Открыть Spotify", "Open Spotify")) { [weak self] in self?.openSpotify() })
+        if router?.active == .soundcloud, let wisp = NSWorkspace.shared.urlForApplication(withBundleIdentifier: WispBackend.bundleID) {
+            menu.addItem(ActionMenuItem(title: tr("Открыть Wisp", "Open Wisp")) {
+                NSWorkspace.shared.openApplication(at: wisp, configuration: NSWorkspace.OpenConfiguration())
+            })
+        } else {
+            menu.addItem(ActionMenuItem(title: tr("Открыть Spotify", "Open Spotify")) { [weak self] in self?.openSpotify() })
+        }
         menu.addItem(ActionMenuItem(title: tr("Настройки…", "Settings…")) { [weak self] in self?.showSettings(nil) })
         menu.addItem(.separator())
         menu.addItem(ActionMenuItem(title: tr("Выйти из Monobrow", "Quit Monobrow")) { NSApp.terminate(nil) })

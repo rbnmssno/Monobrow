@@ -55,6 +55,8 @@ struct PlayerNote: Equatable {
     var text: String
     var tone: Tone
     var serial: Int
+    /// About a SoundCloud track: a positive note takes SoundCloud's orange.
+    var soundCloud = false
 }
 
 /// Everything the island shows and every action it can take. Lives on the main thread.
@@ -96,7 +98,11 @@ final class PlayerModel: ObservableObject {
     /// Called when a control was used but macOS does not let the app control Spotify.
     var onPermissionProblem: (() -> Void)?
 
-    var likeAvailable: Bool { accountConnected && (track?.isLikeable ?? false) }
+    /// SoundCloud tracks are liked through Wisp, which is signed in itself; Spotify needs the account.
+    var likeAvailable: Bool {
+        guard let track, track.isLikeable else { return false }
+        return track.isSoundCloud || accountConnected
+    }
     var duration: Double { track?.duration ?? 0 }
 
     // MARK: Private state
@@ -386,7 +392,7 @@ final class PlayerModel: ObservableObject {
     // MARK: Likes
 
     func toggleLike(fromCover: Bool = false) {
-        guard let likes, likes.isConnected else {
+        guard let likes, likes.isConnected || (track?.isSoundCloud ?? false) else {
             denyLike(tr("Подключи аккаунт Spotify в настройках", "Connect your Spotify account in Settings"))
             return
         }
@@ -409,7 +415,11 @@ final class PlayerModel: ObservableObject {
         likeStatus = target ? .liked : .notLiked
         setLikeShown(target)
         likeEffect = LikeEffect(serial: likeEffect.serial + 1, kind: target ? .liked : .unliked)
-        showNote(target ? tr("Добавлено в «Любимые треки»", "Added to Liked Songs") : tr("Убрано из «Любимых треков»", "Removed from Liked Songs"), tone: target ? .positive : .neutral)
+        if track.isSoundCloud {
+            showNote(target ? tr("Добавлено в лайки SoundCloud", "Added to your SoundCloud likes") : tr("Убрано из лайков SoundCloud", "Removed from your SoundCloud likes"), tone: target ? .positive : .neutral)
+        } else {
+            showNote(target ? tr("Добавлено в «Любимые треки»", "Added to Liked Songs") : tr("Убрано из «Любимых треков»", "Removed from Liked Songs"), tone: target ? .positive : .neutral)
+        }
 
         // Requests run one after another, so a quick like-unlike reaches Spotify in the same order.
         bumpLikeVersion(id)
@@ -481,7 +491,7 @@ final class PlayerModel: ObservableObject {
             return
         }
         likeStatus = .unknown
-        guard let newTrack, newTrack.isLikeable, accountConnected else {
+        guard let newTrack, newTrack.isLikeable, accountConnected || newTrack.isSoundCloud else {
             setLikeShown(false)
             return
         }
@@ -510,7 +520,7 @@ final class PlayerModel: ObservableObject {
 
     private func scheduleLikeFetch(after delay: TimeInterval? = nil) {
         likeFetch.cancel()
-        guard let likes, likes.isConnected, let track, track.isLikeable else { return }
+        guard let likes, let track, track.isLikeable, likes.isConnected || track.isSoundCloud else { return }
         let id = track.id
         likeFetch.schedule(after: delay ?? timing.likeFetchDelay) { [weak self] in
             guard let self else { return }
@@ -554,6 +564,16 @@ final class PlayerModel: ObservableObject {
             // The command did not go through: show again what Spotify last reported, then ask it.
             if let confirmed { apply(confirmed) }
             scheduleVerify(after: 0.3)
+        case .liked(let id, let liked):
+            // The player reported the like itself (SoundCloud, also when liked in Wisp's own window).
+            // A change made here and still on its way wins over an older report.
+            guard pendingLikeWrites[id] == nil else { return }
+            remember(liked, for: id)
+            if track?.id == id {
+                likeHold.cancel()
+                likeStatus = liked ? .liked : .notLiked
+                setLikeShown(liked)
+            }
         }
     }
 
@@ -711,7 +731,7 @@ final class PlayerModel: ObservableObject {
 
     private func showNote(_ text: String, tone: PlayerNote.Tone) {
         noteSerial += 1
-        note = PlayerNote(text: text, tone: tone, serial: noteSerial)
+        note = PlayerNote(text: text, tone: tone, serial: noteSerial, soundCloud: track?.isSoundCloud ?? false)
         noteTimer.schedule(after: timing.noteDuration) { [weak self] in self?.note = nil }
     }
 

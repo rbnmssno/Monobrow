@@ -15,6 +15,10 @@ enum Motion {
 extension Color {
     static let islandDim = Color.white.opacity(0.56)
     static let liked = Color(red: 0.118, green: 0.843, blue: 0.376)
+    /// SoundCloud's own orange, for SoundCloud tracks.
+    static let likedSoundCloud = Color(red: 1, green: 0.333, blue: 0)
+
+    static func liked(soundCloud: Bool) -> Color { soundCloud ? likedSoundCloud : liked }
 }
 
 // MARK: Hover tracking
@@ -279,6 +283,7 @@ struct SkipButton: View {
 struct LikeBurst: View {
     let t: Double
     let accent: Color
+    let tint: Color
 
     private static let sparkCurve = UnitBezier(0.15, 0.75, 0.3, 1)
 
@@ -288,7 +293,7 @@ struct LikeBurst: View {
                 let ringTime = min(1, t / 0.85)
                 let ringEase = 1 - (1 - ringTime) * (1 - ringTime)
                 Circle()
-                    .stroke(Color.liked, lineWidth: 1.5)
+                    .stroke(tint, lineWidth: 1.5)
                     .frame(width: 30, height: 30)
                     .scaleEffect(0.7 + 0.9 * ringEase)
                     .opacity(0.5 * (1 - ringEase))
@@ -308,7 +313,7 @@ struct LikeBurst: View {
         let angle = Double(index) * Double.pi / 4
         let side: CGFloat = small ? 3 : 4
         return Circle()
-            .fill(small ? accent : Color.liked)
+            .fill(small ? accent : tint)
             .frame(width: side, height: side)
             .scaleEffect(max(0, 1.2 - eased))
             .opacity((1 - eased).clamped(0, 1))
@@ -321,22 +326,32 @@ struct LikeButton: View {
     let available: Bool
     let effect: LikeEffect
     let accent: Color
+    /// A SoundCloud track: the heart takes SoundCloud's orange instead of Spotify's green.
+    let soundCloud: Bool
     let action: () -> Void
 
     @State private var burst = 0.0
     @State private var deflate = 0.0
     @State private var shake = 0.0
 
+    private var help: String {
+        if soundCloud {
+            return liked ? tr("Убрать из лайков SoundCloud", "Remove from your SoundCloud likes") : tr("Добавить в лайки SoundCloud", "Add to your SoundCloud likes")
+        }
+        return liked ? tr("Убрать из «Любимых треков»", "Remove from Liked Songs") : tr("Добавить в «Любимые треки»", "Add to Liked Songs")
+    }
+
     var body: some View {
-        IslandButton(size: 36, help: liked ? tr("Убрать из «Любимых треков»", "Remove from Liked Songs") : tr("Добавить в «Любимые треки»", "Add to Liked Songs"), action: action) { hovering in
+        let tint = Color.liked(soundCloud: soundCloud)
+        IslandButton(size: 36, help: help, action: action) { hovering in
             ZStack {
-                Phased(burst) { t in LikeBurst(t: t, accent: accent) }
+                Phased(burst) { t in LikeBurst(t: t, accent: accent, tint: tint) }
                 Phased(burst) { pop in
                     Phased(deflate) { squeeze in
                         Phased(shake) { wobble in
                             Image(systemName: liked ? "heart.fill" : "heart")
                                 .font(.system(size: 18, weight: .medium))
-                                .foregroundStyle(liked ? Color.liked : Color.white.opacity(available ? 0.78 : 0.32))
+                                .foregroundStyle(liked ? tint : Color.white.opacity(available ? 0.78 : 0.32))
                                 .scaleEffect(Self.popScale(pop) * Self.squeezeScale(squeeze) * (hovering ? 1.1 : 1))
                                 .offset(x: Self.wobbleOffset(wobble))
                         }

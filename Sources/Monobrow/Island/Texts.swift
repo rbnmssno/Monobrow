@@ -156,7 +156,7 @@ struct ArtistLine: View {
                 .offset(y: note == nil ? 0 : -6)
             Text(shown?.text ?? "")
                 .minimumScaleFactor(0.8)
-                .foregroundStyle(shown?.tone == .positive ? Color.liked : Color.islandDim)
+                .foregroundStyle(shown?.tone == .positive ? Color.liked(soundCloud: shown?.soundCloud ?? false) : Color.islandDim)
                 .opacity(note == nil ? 0 : 1)
                 .offset(y: note == nil ? 6 : 0)
         }

@@ -259,7 +259,8 @@ private struct ExpandedContent: View {
                     liked: model.likeShown,
                     available: model.likeAvailable,
                     effect: model.likeEffect,
-                    accent: Color(nsColor: model.accent)
+                    accent: Color(nsColor: model.accent),
+                    soundCloud: model.track?.isSoundCloud ?? false
                 ) {
                     model.toggleLike()
                 }

@@ -38,6 +38,10 @@ enum Log {
 enum DevFlags {
     /// Draws a wallpaper-like backdrop behind the island, for screenshots (`--backdrop`).
     static var backdrop = false
+    /// The demo tracks come from SoundCloud through Wisp instead of Spotify (`--soundcloud`).
+    static var soundCloudDemo = false
+    /// Prefix of the demo track ids, which decides the source the island shows.
+    static var demoTrackPrefix: String { soundCloudDemo ? "soundcloud:demo" : "spotify:track:demo" }
 }
 
 /// A cancellable one-shot timer on the main queue.

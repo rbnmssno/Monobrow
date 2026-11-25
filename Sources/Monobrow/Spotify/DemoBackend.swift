@@ -133,7 +133,7 @@ final class DemoBackend: PlayerBackend {
         func item(_ number: Int, _ title: String, _ artist: String, _ duration: Double, accent: UInt32,
                   colors: [UInt32], angle: CGFloat, dot: UInt32) -> Item {
             Item(
-                track: Track(id: "spotify:track:demo\(number)", title: title, artist: artist, album: tr("Демо", "Demo"), duration: duration),
+                track: Track(id: DevFlags.demoTrackPrefix + "\(number)", title: title, artist: artist, album: tr("Демо", "Demo"), duration: duration),
                 artwork: Artwork(image: cover(colors, angle: angle, dot: dot), accent: color(accent))
             )
         }
@@ -156,7 +156,7 @@ final class DemoBackend: PlayerBackend {
 /// In-memory stand-in for the Spotify account in demo mode.
 final class DemoLikeService: LikeService {
     var isConnected = true
-    private var liked: Set<String> = ["spotify:track:demo2", "spotify:track:demo4"]
+    private var liked: Set<String> = [DevFlags.demoTrackPrefix + "2", DevFlags.demoTrackPrefix + "4"]
     private let lock = NSLock()
 
     func isLiked(trackURI: String) async throws -> Bool {

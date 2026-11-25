@@ -15,8 +15,12 @@ struct Track: Equatable {
     /// Seconds.
     let duration: Double
 
-    /// Only regular tracks can be saved to Liked Songs; episodes and local files cannot.
-    var isLikeable: Bool { id.hasPrefix("spotify:track:") }
+    /// A SoundCloud track played in Wisp (`soundcloud:<path>`); everything else comes from Spotify.
+    var isSoundCloud: Bool { id.hasPrefix("soundcloud:") }
+
+    /// Spotify: only regular tracks can be saved to Liked Songs; episodes and local files cannot.
+    /// SoundCloud: every track can be liked, through Wisp.
+    var isLikeable: Bool { id.hasPrefix("spotify:track:") || isSoundCloud }
 }
 
 struct PlaybackSnapshot: Equatable {
@@ -50,6 +54,8 @@ enum BackendEvent {
     case artwork(trackID: String, artwork: Artwork?)
     case permission(AutomationPermission)
     case commandFailed
+    /// The player itself says whether the track is liked (SoundCloud, where the like lives in Wisp).
+    case liked(trackID: String, liked: Bool)
 }
 
 /// Source of playback state and sink for playback commands. `events` is always called on the main thread.
